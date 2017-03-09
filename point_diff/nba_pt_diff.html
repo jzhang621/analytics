@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NBA Point Differential</title>
+</head>
+
+
+<svg height="805" width="840"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.js"></script>
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="pt_diff.css"></link>
+
+<script>
+
+	var barChartContainer = d3.select("svg"),
+        graphMargins = {top: 50, right: 20, bottom: 80, left: 50};
+
+    var graphWidth = +barChartContainer.attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = +barChartContainer.attr("height") - graphMargins.top - graphMargins.bottom;
+
+    var graphContainer = barChartContainer.append("g")
+        .attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var diffToWidth = d3.scaleLinear().rangeRound([0, graphWidth]);
+    var teamToHeight = d3.scaleBand().rangeRound([0, graphHeight]);
+
+    d3.json("nba_pt_diff.json", function(data) {
+		teamToHeight.domain(data.map(function(d) { return d['Name'] }))
+    				.padding(0.2);
+
+    	var minDiff = d3.min(data, function(d) {return d['Diff']});
+    	var maxDiff = d3.max(data, function(d) {return d['Diff']});
+    	var niceFactor = Math.max(maxDiff, Math.abs(minDiff));
+
+    	diffToWidth.domain(d3.extent(data, function(d) {return d['Diff']})).nice(niceFactor);
+
+		graphContainer.selectAll(".graph")
+			      		  .data(data)
+			    		  .enter().append("rect")
+					      .attr("width", function(d) {
+					      	return Math.abs(diffToWidth(d['Diff']) - diffToWidth(0))
+					      })
+					      .attr("height", teamToHeight.bandwidth())
+			      		  .attr("y", function(d) {
+			      		   return teamToHeight(d['Name']);
+			      		  })
+			      		  .attr("x", function(d) {
+			      		  	return diffToWidth(Math.min(0, d['Diff']))
+			      		  })
+			      		  .attr("class", function(d) {
+			      		  	if (d['Diff'] > 0) {
+			      		  		return 'positive';
+			      		  	} else {
+			      		  		return 'negative';
+			      		  	}
+			      		  });
+
+		graphContainer.selectAll(".graph")
+			      		  .data(data)
+			    		  .enter().append("text")
+			      		  .attr("y", function(d) {
+			      		   return teamToHeight(d['Name']) + 10;
+			      		  })
+			      		  .attr("x", function(d) {
+			      		  	var diff = d['Diff'];
+			      		  	if (diff > 0) {
+			      		  		return diffToWidth(.045);
+			      		  	} else if (diff == 0) {
+			      		  		return diffToWidth(-.1);
+			      		  	} else{
+			      		  		return diffToWidth(-.345);
+			      		  	}
+			      		  })
+			      		  .attr("dy", "0.32em")
+			              .text(function(d) { return d['Name']; })
+			              .attr("class", function(d) {
+			              	if (d['Diff'] > 0) {
+			              		return 'positive';
+			              	}
+			              	else if (d['Diff'] == 0) {
+			              		return 'neutral';
+			              	} else {
+			              		return 'negative';
+			              	}
+			              })
+
+		graphContainer.selectAll(".graph")
+			      		  .data(data)
+			    		  .enter().append("text")
+			      		  .attr("y", function(d) {
+			      		   return teamToHeight(d['Name']) + 10;
+			      		  })
+			      		  .attr("x", function(d) {
+			      		  	var width = diffToWidth(d['Diff']);
+			      		  	if (d['Diff'] > 0) {
+			      		  		return width - 13.25;
+			      		  	} else if (d['Diff'] == 0) {
+			      		  		return width + 10;
+			      		  	} else {
+			      		  		return width + 4.5;
+			      		  	}
+			      		  	return width;
+			      		  })
+			      		  .attr("dy", "0.32em")
+			              .text(function(d) {
+			              	var diff = d['Diff'];
+			              	if (diff > 0) {
+			              		return '+' + diff;
+			              	}
+			              	return diff;
+			               })
+			              .attr("class", function(d) {
+			              	if (d['Diff'] > 0) {
+			              		return 'positive';
+			              	}
+			              	else if (d['Diff'] == 0) {
+			              		return 'none';
+			              	} else {
+			              		return 'negative';
+			              	}
+			              })
+
+    })
+
+</script>

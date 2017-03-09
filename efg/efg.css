@@ -1,0 +1,17 @@
+svg {
+	margin: 10px;
+	margin-left: 55px;
+}
+
+.dot {
+	fill: #ffebcc;
+}
+
+.yr-2017 {
+	fill: #e68a00;
+}
+
+.label {
+	font-size: 12px;
+	font-family: 'Fira Sans Condensed', sans-serif;
+}

@@ -1,0 +1,27 @@
+svg {
+	margin: 55px;
+}
+
+circle.hidden {
+	display: None;
+}
+
+circle.show {
+	fill: green;
+}
+
+.pdiff {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+.record {
+  fill: none;
+  stroke: orange;
+  stroke-width: 2px;
+}
+
+text {
+	font-family: 'Fira Sans Condensed', sans-serif;
+}

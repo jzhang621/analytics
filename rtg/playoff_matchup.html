@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Playoff Matchup</title>
+</head>
+
+<svg height="525" width="920"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/dS3-legend.js"></script> -->
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="playoff.css"></link>
+
+<script>
+
+    var getDeltaWinsAbove = function(d) { return d['delta_wins_above'] };
+    var getDeltaWinsBelow = function(d) { return d['delta_wins_below'] };
+    var getTeamName = function(d) { return d['name'] };
+
+    var graphMargins = {top: 30, right: 0, bottom: 80, left: 100};
+
+    var svg = d3.select("svg");
+
+    svg.append("g").attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var graphWidth = svg.attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = svg.attr("height") - graphMargins.top - graphMargins.bottom;
+    var graphMidWidth = graphWidth / 2;
+    console.log(graphMidWidth);
+
+    var data = [
+        {'name': 'CLE', 'delta_wins_above': -1.60, 'delta_wins_below': 1.33},
+        {'name': 'DET', 'delta_wins_above': 3.69, 'delta_wins_below': -3.1}
+    ];
+
+    var winsAxis = d3.scaleLinear().range([graphHeight, 0]).domain([-4, 4]);
+    var abovePaceAxis = d3.scaleLinear().range([graphMidWidth, graphWidth]).domain([0, 4]);
+    var belowPaceAxis = d3.scaleLinear().range([0, graphMidWidth]).domain([-4, 0]);
+
+    // plot deltaWinsAbove vector
+    var dotRadius = 3;
+    svg.selectAll(".dot")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", function(d) { return abovePaceAxis(Math.abs(getDeltaWinsAbove(d))) })
+          .attr("cy", function(d) { return winsAxis(getDeltaWinsAbove(d)) })
+          .attr("r", dotRadius)
+          .attr("style", "fill: green");
+
+    svg.selectAll(".dot")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", function(d) { return belowPaceAxis(-1 * Math.abs(getDeltaWinsBelow(d))) })
+          .attr("cy", function(d) { return winsAxis(getDeltaWinsBelow(d)) })
+          .attr("r", dotRadius)
+          .attr("style", "fill: green");
+
+
+
+    /*
+    d3.json("playoff_pace_data.json", function(data) {
+        console.log(data);
+    });
+    */
+
+
+</script>

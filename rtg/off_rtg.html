@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pace Adjusted</title>
+</head>
+
+<svg height="525" width="920"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.js"></script>
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="rtg.css"></link>
+
+<script>
+
+	var getPointsAllowed = function(d) {
+		return d['allowed'];
+	}
+
+	var getDefensiveRating = function(d) {
+		return d['Defensive Rating'];
+  }
+
+  var getOffensiveRating = function(d) {
+		return d['Offensive Rating'];
+  }
+
+  var getPointsScored = function(d) {
+		  return d['scored'];
+	}
+
+  var getTeamName = function(d) {
+      return d['Team Name'];
+  }
+
+  var graphMargins = {top: 30, right: 0, bottom: 80, left: 100};
+
+	var svg = d3.select("svg")
+    .append("g")
+    .attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var graphWidth = d3.select("svg").attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = d3.select("svg").attr("height") - graphMargins.top - graphMargins.bottom;
+
+    var ratingToHeight = d3.scaleLinear().rangeRound([graphHeight, 0]);
+    var teamIndex = d3.scaleBand().rangeRound([0, graphWidth]).padding(0.1);
+
+
+    var dotRadius = 3;
+    var buffers = 3.5;
+    d3.json("ratings.json", function(data) {
+
+      data.sort(function(x, y) { return getOffensiveRating(y) - getOffensiveRating(x) } );
+
+    	var maxOffensiveRating = d3.max(data, getOffensiveRating);
+      var minOffensiveRating = d3.min(data, getPointsScored);
+
+    	ratingToHeight.domain([minOffensiveRating - buffers, maxOffensiveRating + buffers]);
+      var teams = data.map(function(d) { return getTeamName(d) });
+
+      teamIndex.domain(teams);
+
+      var offset = 17; // piece of shit constant to make stuff line up
+      svg.selectAll(".dot")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", function(d) { return teamIndex(getTeamName(d)) + offset})
+          .attr("cy", function(d) { return ratingToHeight(getPointsScored(d)) })
+          .attr("r", dotRadius)
+          .attr("class", "actual");
+
+      svg.selectAll(".dot")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", function(d) { return teamIndex(getTeamName(d)) + offset})
+          .attr("cy", function(d) { return ratingToHeight(getOffensiveRating(d)) })
+          .attr("r", dotRadius)
+          .attr("class", "rating");
+
+        var teamsAxis = d3.axisBottom(teamIndex).tickSizeOuter(0);
+
+        svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', translate(0, graphHeight))
+            .call(teamsAxis)
+            .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", "-.55em")
+            .attr("transform", "rotate(-90)");
+
+        var ratingAxis = d3.axisLeft()
+            .scale(ratingToHeight).ticks(9).tickSizeOuter(0)
+
+        svg.append('g')
+            .attr('class', 'y axis')
+            .call(ratingAxis)
+
+        var colorLegend = d3.scaleOrdinal()
+            .domain(["Offensive Rating", "Points Scored Per Game"])
+            .range(["green", "#b7d8b7"])
+
+          var colorLegendOffset = 85;
+
+          svg.append("g")
+            .attr("class", "label legendOrdinal")
+            .attr("transform", translate(graphWidth / 2 - 65, colorLegendOffset))
+
+          var legendLinear = d3.legendColor()
+            .shape('circle')
+            .shapePadding(15)
+  			.shapeRadius(dotRadius)
+            .scale(colorLegend)
+
+        svg.select(".legendOrdinal")
+             .call(legendLinear);
+
+    })
+
+</script>

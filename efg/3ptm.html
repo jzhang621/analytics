@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Three Pointers Made Trend</title>
+</head>
+
+<style>
+
+svg {
+	margin: 10px;
+	margin-left: 35px;
+}
+
+.dot {
+	display: none;
+}
+
+.yr-2003, .yr-2004, .yr-2005, .yr-2006, .yr-2007, .yr-2008, .yr-2009, .yr-2010 {
+
+	display: inline;
+	fill: #d9f2d9;
+}
+
+.yr-2017 {
+	display: inline;
+	fill: green;
+}
+
+
+</style>
+
+<svg height="475" width="800"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.js"></script>
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+
+<script>
+
+	var svgMargin = 15;
+
+	var barChartContainer = d3.select("svg"),
+        graphMargins = {top: 0, right: 0, bottom: 20, left: 35};
+
+    var graphWidth = +barChartContainer.attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = +barChartContainer.attr("height") - graphMargins.top - graphMargins.bottom;
+
+    var graphContainer = barChartContainer.append("g")
+        .attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var threePtMadeToHeight = d3.scaleLinear().rangeRound([graphHeight + svgMargin, svgMargin]);
+
+    var numPlayersPerYear = 25;
+    var rankedPlayersPerYear = new Array(numPlayersPerYear);
+    for (var i = 0; i < rankedPlayersPerYear.length; i++){
+  		rankedPlayersPerYear[i] = i;
+	}
+
+    var rankToWidth = d3.scaleBand().rangeRound([0, graphWidth]).domain(rankedPlayersPerYear);
+
+	d3.json("3ptm.json", function(data) {
+
+        var min3ptM = d3.min(data, function(d) {return d['3ptm']});
+        // var max3ptM = d3.max(data, function(d) {return d['3ptm']});
+
+        max3ptM = 4.75;
+
+        threePtMadeToHeight.domain([min3ptM, max3ptM]);
+
+		var dotRadius = 2.5;
+		graphContainer.selectAll(".dot")
+			      		  .data(data)
+			    		  .enter()
+			    		  .append("circle")
+			      		  .attr("r", dotRadius)
+			      		  .attr("cx", function(d, i) { return rankToWidth(i % numPlayersPerYear) })
+			      		  .attr("cy", function(d) { return threePtMadeToHeight(d['3ptm']) })
+			      		  .attr("class", function(d) { return "dot yr-" + d.year} );
+
+        var threePtMadeAxis = d3.axisLeft()
+            .scale(threePtMadeToHeight)
+            .tickSize(0)
+            .tickPadding(8);
+
+        barChartContainer.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', translate(graphMargins.left - 5, 0))
+            .call(threePtMadeAxis);
+
+	} );
+
+</script>

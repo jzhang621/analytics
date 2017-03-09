@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pythagorean Expectation</title>
+</head>
+
+<svg height="525" width="820"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.js"></script>
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="mem.css"></link>
+
+<script>
+
+	var barChartContainer = d3.select("svg"),
+        graphMargins = {top: 30, right: 0, bottom: 80, left: 50};
+
+    var graphWidth = +barChartContainer.attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = +barChartContainer.attr("height") - graphMargins.top - graphMargins.bottom;
+
+    var graphContainer = barChartContainer.append("g")
+        .attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var gameNumToWidth = d3.scaleLinear().rangeRound([0, graphWidth]).domain([1, 82]);
+    var winsToHeight = d3.scaleLinear().rangeRound([graphHeight, 0]).domain([0, 45]);
+
+    var games = new Array(82);
+    for (var i = 0; i < games.length; i++){
+  		games[i] = i + 1;
+	}
+
+    var dotRadius = 2.5;
+    var index = 22;
+
+    d3.json("team_data/MIN.json", function(data) {
+      ptDiffY = data[index]['projected_pt_diff_wins'] / 82.0;
+      recordY = data[index]['projected_total_wins'] / 82.0;
+
+      var ptDiffSlope = d3.line()
+              .x(function(d) {return gameNumToWidth(d)})
+              .y(function(d) {return winsToHeight(d * ptDiffY)});
+
+      var recordSlope = d3.line()
+              .x(function(d) {return gameNumToWidth(d)})
+              .y(function(d) {return winsToHeight(d * recordY)});
+
+      graphContainer.append("path")
+      .data([games])
+      .attr("class", "pdiff")
+      .attr("d", ptDiffSlope)
+      .style("stroke-dasharray", ("3, 3"));
+
+    graphContainer.append("path")
+      .data([games])
+      .attr("class", "record")
+      .attr("d", recordSlope)
+      .style("stroke-dasharray", ("3, 3"));
+
+
+    	graphContainer.selectAll(".dot")
+      		.data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", function(d, i) {return gameNumToWidth(i)})
+          .attr("cy", function(d) {return winsToHeight(d['W'])})
+          .attr("r", dotRadius)
+      		.attr("class", function(d, i) {
+              return 'show';
+              if (i == (data.length - 1)) {
+                return 'show';
+              } else {
+                return 'hidden';
+              }
+          })
+    });
+    var gameAxis = d3.axisBottom()
+            .scale(gameNumToWidth)
+            .tickPadding(8)
+            .ticks(20);
+
+    barChartContainer.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', translate(graphMargins.left, graphHeight + graphMargins.top))
+            .call(gameAxis);
+
+    var winsAxis = d3.axisLeft()
+            .scale(winsToHeight)
+            .tickSize(0)
+
+   	barChartContainer.append('g')
+            .attr('class', 'y axis')
+            .attr('transform', translate(graphMargins.left, graphMargins.top))
+            .call(winsAxis);
+
+    var colorLegend = d3.scaleOrdinal()
+        .domain(["Projected Wins by Actual Record", "Projected Wins by Point Differential", "Actual Wins (3/11/2017)"])
+        .range(["orange", "steelblue", "green"])
+
+      var colorLegendCellBuffer = 2;
+      var colorLegendOffset = 60;
+
+      barChartContainer.append("g")
+        .attr("class", "label legendOrdinal")
+        .attr("transform", translate(graphWidth / 2 + graphMargins.left - 12.5, graphHeight - colorLegendOffset))
+
+      var legendLinear = d3.legendColor()
+        .shape('line')
+        .shapePadding(25)
+        .scale(colorLegend)
+
+    barChartContainer.select(".legendOrdinal")
+         .call(legendLinear);
+
+    var gamesLabel = barChartContainer.append('g')
+                  .attr('transform', translate(graphWidth / 2 + graphMargins.left, graphHeight + graphMargins.top + 50))
+                  .append("text")
+                  .text("Games")
+
+    var winsLabel = barChartContainer.append('g')
+                  .append("text")
+                  .attr('transform', "rotate(-90) ")
+                  .attr("y", 10)
+                  .attr("x", (-1 * graphHeight / 2) - 25)
+                  .attr("dy", "0.71em")
+                  .text("Wins")
+</script>

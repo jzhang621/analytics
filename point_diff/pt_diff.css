@@ -1,0 +1,33 @@
+svg {
+	margin: 10px;
+	margin-left: 55px;
+}
+
+rect.positive {
+	fill: #cc0000;
+}
+
+rect.negative {
+	fill: #ff8080;
+}
+
+text {
+	font-size: 10.5px;
+	font-family: 'Fira Sans Condensed', sans-serif;
+}
+
+text.positive{
+	fill: white;
+}
+
+text.negative {
+	fill: white;
+}
+
+text.label{
+	font-size: 20px;
+}
+
+text.none {
+	display: None;
+}

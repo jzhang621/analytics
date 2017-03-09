@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Offensive Rating</title>
+</head>
+
+<svg height="525" width="970"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.js"></script>
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="rtg.css"></link>
+
+<script>
+
+  var getPointsAllowed = function(d) {
+    return d['allowed'];
+  }
+
+  var getOffensiveRating = function(d) {
+    return d['Offensive Rating'];
+  }
+
+  var getOffensiveRating = function(d) {
+    return d['Offensive Rating'];
+  }
+
+  var getPointsScored = function(d) {
+      return d['scored'];
+  }
+
+  var getTeamName = function(d) {
+      return d['Team Name'];
+  }
+
+  var getPace = function(d) {
+      return d['pace'];
+  }
+
+  var graphMargins = {top: 30, right: 50, bottom: 80, left: 100};
+
+  var svg = d3.select("svg")
+    .append("g")
+    .attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var graphWidth = d3.select("svg").attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = d3.select("svg").attr("height") - graphMargins.top - graphMargins.bottom;
+
+    var ratingToHeight = d3.scaleLinear().rangeRound([graphHeight, 0]);
+    var paceToWidth = d3.scaleLinear().rangeRound([0, graphWidth]);
+
+    var dotRadius = 3;
+    var ratingBuffer = 3.5;
+    var paceBuffer = 1;
+
+    var teamsToShow = new Set(['PHO', 'LAC', 'CLE', 'GSW', 'SAS', 'HOU', 'UTA', 'DAL', 'MEM', 'TOR', 'BRK']);
+
+    d3.json("ratings.json", function(data) {
+
+      var maxOffensiveRating = d3.max(data, getOffensiveRating);
+      var minOffensiveRating = d3.min(data, getOffensiveRating);;
+
+      var maxPace = d3.max(data, getPace);
+      var minPace = d3.min(data, getPace);
+
+      paceToWidth.domain([minPace - paceBuffer, maxPace + paceBuffer]);
+      ratingToHeight.domain([minOffensiveRating - ratingBuffer, maxOffensiveRating + ratingBuffer]);
+
+      var paceAxis = d3.axisBottom(paceToWidth).tickSizeOuter(0).tickValues([minPace - paceBuffer, maxPace + paceBuffer]);
+      var avgOffensiveRating = d3.mean(data, getOffensiveRating);
+
+        svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', translate(0, ratingToHeight(avgOffensiveRating)))
+            .style("stroke-dasharray", ("5, 5"))
+            .call(paceAxis)
+
+        var ratingAxis = d3.axisLeft().scale(ratingToHeight).tickSizeOuter(0).tickValues([minOffensiveRating - ratingBuffer, maxOffensiveRating + ratingBuffer]);
+
+        var avgPace = d3.mean(data, getPace);
+        svg.append('g')
+            .attr('class', 'y axis')
+            .call(ratingAxis)
+            .style("stroke-dasharray", ("5, 5"))
+            .attr('transform', translate(paceToWidth(avgPace), 0))
+
+        svg.selectAll(".dot")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("cx", function(d) { return paceToWidth(getPace(d)) })
+          .attr("cy", function(d) { return ratingToHeight(getOffensiveRating(d)) })
+          .attr("class", function(d) {
+               var teamName = getTeamName(d);
+               if (teamsToShow.has(teamName)) {
+                   return getTeamName(d) + ' highlight';
+               } else {
+                   return getTeamName(d) + ' dim';
+               }
+          })
+          .attr("r", dotRadius)
+
+        var textBufferX = 6;
+        var textBufferY = 2.5;
+        svg.selectAll(".dot")
+           .data(data)
+           .enter()
+           .append("text")
+           .attr("x", function(d) { return paceToWidth(getPace(d)) + textBufferX})
+           .attr("y", function(d) { return ratingToHeight(getOffensiveRating(d)) + textBufferY})
+           .attr("dy", "0.12em")
+           .text(function(d) {
+               var teamName = getTeamName(d);
+               if (teamsToShow.has(teamName)) {
+                   return teamName;
+               }
+           })
+
+      svg.append('g')
+         .append('text')
+         .text('Possessions per game')
+         .attr('transform', translate(graphWidth - 110, ratingToHeight(avgOffensiveRating) - 5))
+
+    svg.append('g')
+         .append('text')
+         .text('Offensive Rating')
+         .attr('transform', translate(paceToWidth(avgPace) - 47.5, graphHeight + 18.5))
+
+    })
+
+</script>

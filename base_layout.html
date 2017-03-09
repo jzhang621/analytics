@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pace Adjusted</title>
+</head>
+
+<svg height="525" width="920"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/dS3-legend.js"></script>
+<script src="../utils.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+<!-- EDIT ME TO CORRECT CSS NAME <link rel="stylesheet" type="text/css" href="rtg.css"></link> -->
+
+<script>
+
+    var graphMargins = {top: 30, right: 0, bottom: 80, left: 100};
+
+    var svg = d3.select("svg");
+
+    svg.append("g").attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var graphWidth = svg.attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = svg.attr("height") - graphMargins.top - graphMargins.bottom;
+
+</script>

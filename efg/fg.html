@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Field Goal Trend</title>
+</head>
+
+<svg height="525" width="820"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.19.0/d3-legend.js"></script>
+<script src="../utils.js"></script>
+<link rel="stylesheet" type="text/css" href="efg.css"></link>
+<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Condensed" rel="stylesheet">
+
+<script>
+
+	var barChartContainer = d3.select("svg"),
+        graphMargins = {top: 30, right: 0, bottom: 80, left: 50};
+
+    var graphWidth = +barChartContainer.attr("width") - graphMargins.left - graphMargins.right;
+    var graphHeight = +barChartContainer.attr("height") - graphMargins.top - graphMargins.bottom;
+
+    var graphContainer = barChartContainer.append("g")
+        .attr("transform", translate(graphMargins.left, graphMargins.top));
+
+    var fgToHeight = d3.scaleLinear().rangeRound([graphHeight, 0]);
+
+    var numPlayersPerYear = 25;
+    var rankedPlayersPerYear = new Array(numPlayersPerYear);
+    for (var i = 0; i < rankedPlayersPerYear.length; i++){
+  		rankedPlayersPerYear[i] = i;
+	}
+
+    var rankToWidth = d3.scaleBand().rangeRound([0, graphWidth]).domain(rankedPlayersPerYear);
+
+	d3.json("fg.json", function(data) {
+
+        var minfgToDisplay = d3.min(data, function(d) {return d.fg}) - .005;
+        var maxfgToDisplay = d3.max(data, function(d) {return d.fg}) + .005;
+
+        fgToHeight.domain([minfgToDisplay, maxfgToDisplay]);
+
+		var dotRadius = 2.5;
+		graphContainer.selectAll(".dot")
+			      		  .data(data)
+			    		  .enter()
+			    		  .append("circle")
+			      		  .attr("r", dotRadius)
+			      		  .attr("cx", function(d, i) { return rankToWidth(i % numPlayersPerYear) + 15})
+			      		  .attr("cy", function(d) { return fgToHeight(d.fg) })
+			      		  .attr("class", function(d) { return "dot yr-" + d.year} );
+
+        var efgAxis = d3.axisLeft()
+            .scale(fgToHeight)
+            .tickSize(0)
+
+        var rankedScale = new Array(numPlayersPerYear);
+        for (var i = 0; i < rankedPlayersPerYear.length; i++) {
+            rankedScale[i] = i+1;
+        }
+        var rankScale = d3.scaleBand().rangeRound([0, graphWidth]).domain(rankedScale);
+
+        var rankAxis = d3.axisBottom()
+            .scale(rankToWidth)
+            .tickFormat(function(d) {return d + 1})
+            .tickSize(0)
+            .tickPadding(8);
+
+        barChartContainer.append('g')
+            .attr('class', 'y axis')
+            .attr('transform', translate(graphMargins.left, graphMargins.top))
+            .call(efgAxis);
+
+        var rankAxisBuffer = 0;
+        barChartContainer.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', translate(graphMargins.left, graphHeight + graphMargins.top + rankAxisBuffer))
+            .call(rankAxis);
+
+        barChartContainer.append("text")
+           .attr("class", "y label")
+           .attr("text-anchor", "end")
+           .attr("x", -195.5)
+           .attr("y", 12.5)
+           .attr("transform", "rotate(-90)")
+           .text("FG%")
+
+        barChartContainer.append("text")
+           .attr("class", "x label")
+           .attr("text-anchor", "end")
+           .attr("transform", translate(530, graphHeight + graphMargins.top + 40))
+           .text("FG% Rank Among Year's Top 25 Scorers")
+
+        var colorLegend = d3.scaleOrdinal()
+            .domain(["'16-'17", "'03-'10"])
+            .range(["#e68a00", "#ffebcc"])
+
+        var colorLegendOffset = 30;
+
+        barChartContainer.append("g")
+            .attr("class", "label legendOrdinal")
+            .attr("transform", translate(graphWidth / 2 + graphMargins.left - 5, graphHeight - colorLegendOffset))
+
+        var legendLinear = d3.legendColor()
+            .shape('circle')
+            .shapePadding(10)
+            .shapeRadius(dotRadius)
+            .scale(colorLegend)
+
+        barChartContainer.select(".legendOrdinal")
+           .call(legendLinear);
+
+	} );
+
+</script>
